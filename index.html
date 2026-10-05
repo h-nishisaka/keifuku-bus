@@ -66,13 +66,14 @@ section h2{font-size:14px;margin:0 0 8px 4px;color:var(--ink3);font-weight:700;l
 .card .sign .to{font-size:15px;opacity:.82}
 .card .body{padding:14px 16px 16px}
 .card .next{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:16px}
-.card .left{display:flex;flex-direction:column;align-items:center;gap:6px}
-.card .count{display:flex;flex-direction:column;align-items:center;line-height:1;white-space:nowrap}
+.card .left{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:118px}
+.card .count{display:flex;flex-direction:column;align-items:flex-start;line-height:1;white-space:nowrap}
 .card .count .row{display:flex;align-items:baseline;gap:2px}
-.card .count .pre{font-size:14px;color:var(--ink3);font-weight:700;letter-spacing:.14em;margin-bottom:3px}
+.card .count .pre{font-size:15px;color:var(--ink2);font-weight:700;letter-spacing:.06em;margin:0 0 -2px 4px}
 .card .count .big{font-size:70px;font-weight:900;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
 .card .count .unit{font-size:24px;font-weight:700}
-.card .count.soon .big{font-size:40px;color:var(--wine)}
+.card .count.soon{justify-content:center;min-height:86px}
+.card .count.soon .big{font-size:34px;color:var(--wine);letter-spacing:.02em}
 .card.alt .count.soon .big{color:var(--taupe)}
 .card .meta{font-size:18px;color:var(--ink2);line-height:1.5;min-width:0}
 .card .meta>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -463,7 +464,7 @@ function renderHome(){
       body=`<div class="none">今日の便はもうありません${nx?`<br>明日の始発 <b>${fmtSec(nx.time)}</b>`:''}</div>`;
     } else {
       const n=rows[0]; const mins=Math.round((n.est-day.secNow)/60);
-      const count = mins<=0 ? '<div class="count soon"><span class="pre">&nbsp;</span><div class="row"><span class="big">まもなく</span></div></div>'
+      const count = mins<=0 ? '<div class="count soon"><div class="row"><span class="big">まもなく</span></div></div>'
                             : `<div class="count"><span class="pre">あと</span><div class="row"><span class="big">${mins}</span><span class="unit">分</span></div></div>`;
       const chip = n.d==null ? '' : `<span class="chip ${delayClass(n.d)}">${delayText(n.d)}</span>`;
       const dep = n.d ? `<s>${fmtSec(n.time)}</s>${fmtSec(n.est)}発` : `${fmtSec(n.time)}発`;
