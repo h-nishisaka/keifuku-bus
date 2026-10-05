@@ -8,6 +8,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
 <meta name="theme-color" content="#7a1f2e">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" href="favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-title" content="バスいまどこ">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
@@ -108,6 +113,8 @@ select,input{font:inherit;padding:6px 10px;border:1px solid var(--line);border-r
   box-shadow:0 1px 4px rgba(0,0,0,.35);white-space:nowrap;line-height:1.3}
 .busmarker.alt{background:var(--taupe)}
 .busmarker span{font-weight:500;font-size:11px;opacity:.95}
+.links{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+.links a{color:var(--wine);font-weight:700;font-size:15px;text-decoration:none;border-bottom:1px solid currentColor}
 footer{font-size:12px;color:var(--ink3);padding:0 16px 12px;max-width:1040px;margin:0 auto;width:100%}
 @media (min-width:760px){ .home{grid-template-columns:1fr 1fr} #map{height:440px} .card .count .big{font-size:88px} }
 </style>
@@ -142,12 +149,17 @@ footer{font-size:12px;color:var(--ink3);padding:0 16px 12px;max-width:1040px;mar
       <label>帰りの乗車 <input id="hubStop" value="福井駅" size="8"></label>
       <label>更新間隔 <select id="intervalSel"><option value="15">15秒</option><option value="30" selected>30秒</option><option value="60">60秒</option></select></label>
       <button id="reloadStatic">時刻表データを取り直す</button>
-      <button id="showRoutes">系統一覧</button>
       <input id="routesInput" type="hidden" value="70,71">
     </div>
   </details>
 </main>
-<footer>データ：公共交通オープンデータセンター（京福バス GTFS / GTFS-RT, CC BY 4.0）・地図 © OpenStreetMap contributors</footer>
+<footer>
+<nav class="links">
+  <a href="https://keifuku.bustei.net/buslocation/index.htm" target="_blank" rel="noopener">京福バスナビ（公式バスロケ）</a>
+  <a href="https://bus.keifuku.co.jp/rosen-list/rosen-time/70/" target="_blank" rel="noopener">70 時刻表</a>
+  <a href="https://bus.keifuku.co.jp/rosen-list/rosen-time/71/" target="_blank" rel="noopener">71 時刻表</a>
+</nav>
+データ：公共交通オープンデータセンター（京福バス GTFS / GTFS-RT, CC BY 4.0）・地図 © OpenStreetMap contributors</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -514,7 +526,6 @@ $('mapwrap').addEventListener('toggle', ()=>{ if($('mapwrap').open){ setTimeout(
 $('intervalSel').addEventListener('change', e=>{ pref.interval=+e.target.value; savePref(); startTimer(); });
 $('routesInput').addEventListener('change', e=>{ pref.routes=e.target.value.split(/[,、\s]+/).map(s=>s.trim()).filter(Boolean); savePref(); boot(true); });
 $('reloadStatic').addEventListener('click', ()=>boot(true));
-$('showRoutes').addEventListener('click', ()=>{ if(S&&S.allShort) showMsg('時刻表データにある系統: '+S.allShort.join(' ')); });
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && S) refresh(); });
 
 pref.mode='go';
