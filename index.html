@@ -5,102 +5,145 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>京福バス 70・71系統 いまどこ</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
+<meta name="theme-color" content="#7a1f2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
 :root{
-  --bg:#f3f4f2; --panel:#ffffff; --ink:#1d1d1b; --ink2:#5a5a55; --line:#dcdcd6;
-  --wine:#7a1f2e; --wine2:#9b3344; --taupe:#8c7f72;
-  --ok:#2d6a3e; --late:#b45309; --vlate:#b91c1c; --early:#1d4ed8;
-  --r:10px;
+  --bg:#f1f2ef; --panel:#ffffff; --ink:#1b1b19; --ink2:#62625c; --ink3:#8f8f88; --line:#e1e1db;
+  --wine:#7a1f2e; --wine-ink:#fff; --taupe:#5f554b; --taupe-ink:#fff;
+  --ok:#2f7a45; --ok-bg:#e4f3e8; --late:#a65b00; --late-bg:#fdefd8; --vlate:#b4262a; --vlate-bg:#fbe3e3; --early:#1f58c7; --early-bg:#e3ebfb;
+  --shadow:0 1px 2px rgba(20,20,10,.06), 0 6px 18px rgba(20,20,10,.06);
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
   box-sizing:border-box;
 }
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#141412; --panel:#1f1f1c; --ink:#f0efea; --ink2:#b3b2aa; --ink3:#7d7d75; --line:#33332f;
+  --wine:#8e2a3b; --taupe:#6a5f55;
+  --ok:#7fd196; --ok-bg:#1d3324; --late:#f0b05a; --late-bg:#3a2a12; --vlate:#f08a8d; --vlate-bg:#3d1b1c; --early:#8fb2ff; --early-bg:#1b2a48;
+  --shadow:none;
+}}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
-  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI","Meiryo",system-ui,sans-serif;
-  font-size:15px;line-height:1.5}
+  font-family:"Zen Kaku Gothic New","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI","Meiryo",system-ui,sans-serif;
+  font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
 body{display:flex;flex-direction:column}
-header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--line);
-  position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
-header h1{font-size:16px;font-weight:700;margin:0;flex:1;letter-spacing:.02em}
-.badge{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:26px;padding:0 7px;border-radius:6px;
-  background:var(--wine);color:#fff;font-weight:800;font-size:15px;letter-spacing:.02em}
+
+header{display:flex;align-items:center;gap:10px;padding:12px 16px 10px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;
+  background:var(--bg)}
+header h1{font-size:15px;font-weight:700;margin:0;flex:1;letter-spacing:.04em;color:var(--ink2)}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:6px 14px;font-weight:700}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--wine);outline-offset:2px}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{border:0;padding:5px 14px;font-size:13px;background:transparent;color:var(--ink2)}
+.seg button.on{background:var(--ink);color:var(--bg)}
+#refreshBtn{width:38px;height:38px;padding:0;display:grid;place-items:center;font-size:18px;line-height:1}
+#refreshBtn.spin{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#refreshBtn.spin{animation:none}}
+
+main{flex:1;overflow:auto;padding:4px 14px 28px;display:flex;flex-direction:column;gap:18px;width:100%;max-width:1040px;margin:0 auto}
+.status{font-size:12.5px;color:var(--ink3);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:0 4px}
+.msg{background:var(--late-bg);color:var(--ink);border-radius:12px;padding:10px 14px;font-size:14px}
+.msg.err{background:var(--vlate-bg)}
+section h2{font-size:12.5px;margin:0 0 8px 4px;color:var(--ink3);font-weight:700;letter-spacing:.06em}
+
+/* ---- the two boarding cards ---- */
+.home{display:grid;gap:14px}
+.card{background:var(--panel);border-radius:18px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line)}
+.card .sign{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--wine);color:var(--wine-ink)}
+.card.alt .sign{background:var(--taupe);color:var(--taupe-ink)}
+.card .sign .num{font-size:30px;font-weight:900;letter-spacing:-.02em;line-height:1;min-width:48px}
+.card .sign .route{display:flex;flex-direction:column;line-height:1.25}
+.card .sign .stop{font-size:19px;font-weight:700}
+.card .sign .to{font-size:12.5px;opacity:.82}
+.card .body{padding:14px 16px 16px}
+.card .next{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.card .count{display:flex;align-items:baseline;gap:4px;line-height:1}
+.card .count .pre{font-size:15px;color:var(--ink2);font-weight:700}
+.card .count .big{font-size:64px;font-weight:900;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.card .count .unit{font-size:20px;font-weight:700}
+.card .count.soon .big{font-size:40px;color:var(--wine)}
+.card.alt .count.soon .big{color:var(--taupe)}
+.card .meta{font-size:14px;color:var(--ink2);line-height:1.6;flex:1;min-width:150px}
+.card .meta .dep{font-size:17px;color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+.card .meta .dep s{font-weight:500;color:var(--ink3);font-size:14px;margin-right:6px}
+.chip{display:inline-block;font-size:12.5px;font-weight:700;border-radius:999px;padding:1px 9px;vertical-align:middle;margin-left:6px}
+.chip.d-ok{background:var(--ok-bg);color:var(--ok)} .chip.d-late{background:var(--late-bg);color:var(--late)}
+.chip.d-vlate{background:var(--vlate-bg);color:var(--vlate)} .chip.d-early{background:var(--early-bg);color:var(--early)}
+.chip.d-na{background:var(--bg);color:var(--ink3)}
+.card .where{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:14px;color:var(--ink2)}
+.card .where .dot{width:10px;height:10px;border-radius:50%;background:var(--wine);box-shadow:0 0 0 3px color-mix(in srgb,var(--wine) 22%,transparent);flex:none}
+.card.alt .where .dot{background:var(--taupe);box-shadow:0 0 0 3px color-mix(in srgb,var(--taupe) 22%,transparent)}
+.card .where .dot.off{background:var(--ink3);box-shadow:none}
+.card .later{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--ink3)}
+.card .later b{color:var(--ink);font-size:15px;font-variant-numeric:tabular-nums;margin-left:4px}
+.card .none{font-size:15px;color:var(--ink2)}
+.card .none b{color:var(--ink);font-size:18px}
+
+/* ---- running buses ---- */
+.bus{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;background:var(--panel);
+  border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin-bottom:8px}
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:36px;height:28px;padding:0 8px;border-radius:8px;
+  background:var(--wine);color:#fff;font-weight:900;font-size:15px}
 .badge.alt{background:var(--taupe)}
-button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:6px 10px}
-button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--wine2);outline-offset:2px}
-button.primary{background:var(--wine);color:#fff;border-color:var(--wine)}
-#map{height:46vh;min-height:260px;background:#e6e8e4}
-main{flex:1;overflow:auto;padding:10px 12px 24px;display:flex;flex-direction:column;gap:14px}
-.status{font-size:13px;color:var(--ink2);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-.status b{color:var(--ink)}
-.msg{background:#fff7e6;border:1px solid #f1d8a3;border-radius:var(--r);padding:10px 12px;font-size:14px}
-.msg.err{background:#fdecec;border-color:#f0b4b4}
-section h2{font-size:14px;margin:0 0 6px;color:var(--ink2);font-weight:600}
-.bus{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:var(--panel);
-  border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin-bottom:8px}
 .bus .dest{font-weight:700}
 .bus .sub{font-size:13px;color:var(--ink2)}
-.delay{font-weight:800;font-size:18px;text-align:right;white-space:nowrap}
-.delay small{display:block;font-size:11px;font-weight:500;color:var(--ink2)}
-.d-ok{color:var(--ok)} .d-late{color:var(--late)} .d-vlate{color:var(--vlate)} .d-early{color:var(--early)} .d-na{color:var(--ink2)}
-.board{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-.board .row{display:grid;grid-template-columns:auto auto 1fr auto;gap:10px;align-items:center;padding:8px 12px;border-top:1px solid var(--line);font-size:14px}
-.board .row:first-child{border-top:0}
-.board .time{font-variant-numeric:tabular-nums;font-weight:700;font-size:16px}
-.board .time s{color:var(--ink2);font-weight:400;font-size:13px;margin-right:4px}
-.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-select,input{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);max-width:100%}
-details.settings{font-size:14px;color:var(--ink2)}
-details.settings summary{cursor:pointer}
-details.settings .controls{margin-top:8px}
-.empty{color:var(--ink2);font-size:14px;padding:8px 2px}
-.busmarker{background:var(--wine);color:#fff;font-weight:800;font-size:12px;border-radius:14px;padding:2px 7px;border:2px solid #fff;
+.delay{font-weight:900;font-size:19px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.delay small{display:block;font-size:11px;font-weight:500;color:var(--ink3)}
+.d-ok{color:var(--ok)} .d-late{color:var(--late)} .d-vlate{color:var(--vlate)} .d-early{color:var(--early)} .d-na{color:var(--ink3)}
+
+details.mapwrap summary,details.settings summary{cursor:pointer;font-size:13px;color:var(--ink2);padding:6px 4px;font-weight:700;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"＋";display:inline-block;width:18px;color:var(--ink3)}
+details[open] summary::before{content:"－"}
+#map{height:36vh;min-height:240px;border-radius:14px;overflow:hidden;margin-top:6px;background:#e6e8e4}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;font-size:14px;color:var(--ink2)}
+select,input{font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);max-width:100%}
+.controls button{border-radius:10px;font-weight:500}
+.empty{color:var(--ink3);font-size:14px;padding:6px 4px}
+.busmarker{background:var(--wine);color:#fff;font-weight:900;font-size:12px;border-radius:14px;padding:2px 8px;border:2px solid #fff;
   box-shadow:0 1px 4px rgba(0,0,0,.35);white-space:nowrap;line-height:1.3}
 .busmarker.alt{background:var(--taupe)}
 .busmarker span{font-weight:500;font-size:11px;opacity:.95}
-.stopdot{width:8px;height:8px;border-radius:50%;background:#fff;border:2px solid var(--wine)}
-footer{font-size:11px;color:var(--ink2);padding:0 12px 10px}
-@media (prefers-reduced-motion: no-preference){ .bus{transition:background .3s} }
-@media (min-width:900px){
-  body{flex-direction:row;flex-wrap:wrap}
-  header{width:100%}
-  #map{width:58%;height:calc(100vh - 56px);min-height:0}
-  main{width:42%;height:calc(100vh - 56px)}
-  footer{width:100%}
-}
+footer{font-size:11px;color:var(--ink3);padding:0 16px 12px;max-width:1040px;margin:0 auto;width:100%}
+@media (min-width:760px){ .home{grid-template-columns:1fr 1fr} #map{height:440px} .card .count .big{font-size:72px} }
 </style>
 </head>
 <body>
 <header>
-  <span class="badge" id="badge1">70</span><span class="badge alt" id="badge2">71</span>
   <h1>京福バス いまどこ</h1>
-  <button id="refreshBtn" title="今すぐ更新">更新</button>
+  <div class="seg" role="group" aria-label="行きと帰り"><button id="modeGo">行き</button><button id="modeBack">帰り</button></div>
+  <button id="refreshBtn" title="今すぐ更新" aria-label="今すぐ更新">↻</button>
 </header>
-<div id="map" role="img" aria-label="バスの現在地マップ"></div>
 <main>
   <div class="status"><span id="statusText">準備中…</span><span id="updatedAt"></span></div>
   <div id="msg" hidden></div>
 
+  <div class="home" id="home"></div>
+
   <section>
-    <h2>運行中のバス</h2>
+    <h2>いま走っている 70・71</h2>
     <div id="busList"><div class="empty">読み込み中…</div></div>
   </section>
 
-  <section>
-    <h2>バス停の発車予定</h2>
-    <div class="controls">
-      <select id="stopSel" aria-label="バス停を選ぶ"><option value="">バス停を選ぶ…</option></select>
-    </div>
-    <div id="board" class="board" style="margin-top:8px" hidden></div>
-    <div id="boardEmpty" class="empty">バス停を選ぶと、次に来るバスの予定（遅れ反映）を表示します。</div>
-  </section>
+  <details class="mapwrap" id="mapwrap">
+    <summary>地図を見る</summary>
+    <div id="map" role="img" aria-label="バスの現在地マップ"></div>
+  </details>
 
   <details class="settings">
     <summary>設定</summary>
     <div class="controls">
-      <label>系統 <input id="routesInput" value="70,71" size="10"></label>
+      <label>70 の最寄 <input id="stop70" value="種池" size="8"></label>
+      <label>71 の最寄 <input id="stop71" value="江守中" size="8"></label>
+      <label>帰りの乗車 <input id="hubStop" value="福井駅" size="8"></label>
       <label>更新間隔 <select id="intervalSel"><option value="15">15秒</option><option value="30" selected>30秒</option><option value="60">60秒</option></select></label>
       <button id="reloadStatic">時刻表データを取り直す</button>
       <button id="showRoutes">系統一覧</button>
+      <input id="routesInput" type="hidden" value="70,71">
     </div>
   </details>
 </main>
@@ -122,6 +165,9 @@ const $ = id => document.getElementById(id);
 const pref = loadPref();
 $('routesInput').value = pref.routes.join(',');
 $('intervalSel').value = String(pref.interval);
+$('stop70').value = pref.stops['70'] || '種池';
+$('stop71').value = pref.stops['71'] || '江守中';
+$('hubStop').value = pref.hub;
 
 // ---------- state ----------
 let S = null;            // static subset: {fetched, routes:{route_id:{short,long}}, trips:{}, stops:{}, shapes:{}, cal, calDates, targets}
@@ -132,8 +178,8 @@ let lastVeh = [], lastTU = {};
 // ---------- helpers ----------
 function loadPref(){
   try{ const p = JSON.parse(localStorage.getItem(PREF_KEY)||'{}');
-    return { routes:(p.routes&&p.routes.length)?p.routes:['70','71'], interval:p.interval||30, stop:p.stop||'' };
-  }catch(e){ return {routes:['70','71'],interval:30,stop:''}; }
+    return { routes:(p.routes&&p.routes.length)?p.routes:['70','71'], interval:p.interval||30, stops:p.stops||{'70':'種池','71':'江守中'}, hub:p.hub||'福井駅', mode:p.mode||'auto' };
+  }catch(e){ return {routes:['70','71'],interval:30,stops:{'70':'種池','71':'江守中'},hub:'福井駅',mode:'auto'}; }
 }
 function savePref(){ try{ localStorage.setItem(PREF_KEY, JSON.stringify(pref)); }catch(e){} }
 function setStatus(t){ $('statusText').textContent = t; }
@@ -275,7 +321,7 @@ function delayText(d){ if(d==null) return '―'; const m=Math.round(d/60); if(m=
 
 async function refresh(){
   if(!S) return;
-  setStatus('更新中…');
+  setStatus('更新中…'); $('refreshBtn').classList.add('spin');
   try{
     const [veh, tus] = await Promise.all([fetchFeed(URL_VEH), fetchFeed(URL_TU)]);
     lastTU={}; for(const e of tus){ if(e.trip_update && e.trip_update.trip){ const t=e.trip_update.trip; if(t.trip_id) lastTU[t.trip_id]=e.trip_update; } }
@@ -290,6 +336,7 @@ async function refresh(){
     showMsg('リアルタイム情報の取得に失敗しました: '+err.message+'（通信状態、または時間帯によりデータが無い場合があります）', true);
     setStatus('取得失敗');
   }
+  $('refreshBtn').classList.remove('spin');
 }
 
 function renderBuses(){
@@ -304,7 +351,7 @@ function renderBuses(){
     let nextStop='';
     if(v.stop_id && S.stops[v.stop_id]) nextStop=S.stops[v.stop_id].name;
     else if(trip.stops && v.current_stop_sequence!=null){ const s=trip.stops.find(x=>x[1]===v.current_stop_sequence); if(s&&S.stops[s[0]]) nextStop=S.stops[s[0]].name; }
-    const statusWord = v.current_status===1 ? '停車中' : (v.current_status===0 ? 'まもなく' : 'へ向かっています');
+    const statusWord = v.current_status===1 ? 'に停車中' : (v.current_status===0 ? 'にまもなく到着' : 'へ向かっています');
     const sched = trip.stops && trip.stops.length ? fmtSec(trip.stops[0][2])+'発' : '';
     return {v,trip,route,d,nextStop,statusWord,sched};
   }).sort((a,b)=> (a.route.short.localeCompare(b.route.short,'ja',{numeric:true})) || (a.sched.localeCompare(b.sched)));
@@ -330,35 +377,84 @@ function renderBuses(){
 
 function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-function renderBoard(){
-  const stopId=$('stopSel').value; const board=$('board'), empty=$('boardEmpty');
-  if(!stopId){ board.hidden=true; empty.hidden=false; return; }
-  const now=new Date(); const nowSec=now.getHours()*3600+now.getMinutes()*60+now.getSeconds();
-  // service day: before 03:00 treat as previous day (GTFS 24h+ times)
-  const sday=new Date(now); let secNow=nowSec; if(now.getHours()<3){ sday.setDate(sday.getDate()-1); secNow+=86400; }
-  const ds=yyyymmdd(sday), dow=sday.getDay();
-  const byStop = S.stopIndex || buildStopIndex();
-  const cands=(byStop[stopId]||[]).filter(x=>serviceActive(S.trips[x.trip_id].service_id, ds, dow));
-  const rows=[];
-  for(const c of cands){
-    const tu=lastTU[c.trip_id]; const d = tu ? delayOf(tu, c.seq) : null;
-    const est=c.time+(d||0);
-    if(est < secNow-120) continue;
-    const trip=S.trips[c.trip_id]; const route=S.routes[trip.route_id];
-    const running=lastVeh.some(v=>v.trip.trip_id===c.trip_id);
-    rows.push({est, time:c.time, d, route, trip, running, last:c.last});
+function serviceDay(){
+  const now=new Date(); let secNow=now.getHours()*3600+now.getMinutes()*60+now.getSeconds();
+  const sday=new Date(now); if(now.getHours()<3){ sday.setDate(sday.getDate()-1); secNow+=86400; }
+  return {ds:yyyymmdd(sday), dow:sday.getDay(), secNow};
+}
+function statusLine(veh){
+  if(!veh) return null;
+  let ns='';
+  if(veh.stop_id && S.stops[veh.stop_id]) ns=S.stops[veh.stop_id].name;
+  else if(veh.current_stop_sequence!=null){ const t=S.trips[veh.trip.trip_id]; const s=t&&t.stops.find(x=>x[1]===veh.current_stop_sequence); if(s&&S.stops[s[0]]) ns=S.stops[s[0]].name; }
+  if(!ns) return '運行中（位置あり）';
+  if(veh.current_status===1) return ns+' に停車中';
+  if(veh.current_status===0) return 'まもなく '+ns;
+  return ns+' へ向かっています';
+}
+// departures of one route from stop `fromName`, arriving later at the first of `toNames`
+function departures(routeShort, fromName, toNames, day, limit){
+  const routeIds=Object.keys(S.routes).filter(id=>S.routes[id].short===routeShort);
+  const byStop=S.stopIndex||buildStopIndex();
+  const fromIds=Object.keys(S.stops).filter(id=>S.stops[id].name===fromName);
+  const rows=[]; const seen=new Set();
+  for(const sid of fromIds){
+    for(const c of (byStop[sid]||[])){
+      const trip=S.trips[c.trip_id]; if(!routeIds.includes(trip.route_id)) continue;
+      if(seen.has(c.trip_id)) continue;
+      if(!serviceActive(trip.service_id, day.ds, day.dow)) continue;
+      // destination: first later stop whose name is in toNames; else terminus
+      let dest=trip.stops.find(x=>x[1]>c.seq && toNames.includes((S.stops[x[0]]||{}).name));
+      if(!dest){ if(toNames.length) continue; dest=trip.stops[trip.stops.length-1]; }
+      seen.add(c.trip_id);
+      const tu=lastTU[c.trip_id];
+      const d=tu?delayOf(tu,c.seq):null;           // delay at boarding stop
+      const dDest=tu?delayOf(tu,dest[1]):null;     // delay predicted at destination (falls back to trip delay)
+      const est=c.time+(d||0);
+      if(est < day.secNow-90) continue;
+      rows.push({est, time:c.time, d, trip, veh:lastVeh.find(v=>v.trip.trip_id===c.trip_id),
+        destName:(S.stops[dest[0]]||{}).name||'', destTime:dest[2], destEst:dest[2]+(dDest!=null?dDest:(d||0)), destD:dDest!=null?dDest:d});
+    }
   }
   rows.sort((a,b)=>a.est-b.est);
-  const top=rows.slice(0,10);
-  if(!top.length){ board.hidden=true; empty.hidden=false; empty.textContent='この後の便は今日はもうありません。'; return; }
-  empty.hidden=true; board.hidden=false;
-  board.innerHTML = top.map(r=>{
-    const alt=r.route.short!==pref.routes[0];
-    const t = r.d ? `<s>${fmtSec(r.time)}</s>${fmtSec(r.est)}` : fmtSec(r.time);
-    const st = r.last ? '終点着' : (r.running ? (r.d==null?'運行中':delayText(r.d)) : '未出発');
-    return `<div class="row"><span class="badge${alt?' alt':''}">${esc(r.route.short)}</span><span class="time">${t}</span><span>${esc(r.trip.headsign)}</span><span class="${delayClass(r.running?r.d:null)}">${st}</span></div>`;
-  }).join('');
+  return {rows:rows.slice(0,limit), found:fromIds.length>0};
 }
+function currentMode(){ return pref.mode==='back'?'back':'go'; }
+function renderHome(){
+  const home=$('home'); home.innerHTML='';
+  const mode=currentMode();
+  $('modeGo').classList.toggle('on',mode==='go'); $('modeBack').classList.toggle('on',mode==='back');
+  const day=serviceDay();
+  const homeStops=Object.values(pref.stops).filter(Boolean);
+  pref.routes.forEach((r,i)=>{
+    const from = mode==='go' ? (pref.stops[r]||'') : pref.hub;
+    const toNames = mode==='go' ? [pref.hub] : homeStops;
+    const {rows,found}=departures(r, from, toNames, day, 3);
+    const card=document.createElement('div'); card.className='card'+(i?' alt':'');
+    let body='', toLabel = mode==='go'?pref.hub:(rows[0]?rows[0].destName:homeStops.join('／'));
+    if(!found){ body=`<div class="none">「${esc(from)}」というバス停が時刻表に見つかりません。設定で確認してください。</div>`; }
+    else if(!rows.length){
+      const nd=new Date(); nd.setDate(nd.getDate()+1); const day2={ds:yyyymmdd(nd), dow:nd.getDay(), secNow:-1};
+      const nx=departures(r, from, toNames, day2, 1).rows[0];
+      body=`<div class="none">今日の便はもうありません${nx?`<br>明日の始発 <b>${fmtSec(nx.time)}</b>`:''}</div>`;
+    } else {
+      const n=rows[0]; const mins=Math.round((n.est-day.secNow)/60);
+      const count = mins<=0 ? '<div class="count soon"><span class="big">まもなく</span></div>'
+                            : `<div class="count"><span class="pre">あと</span><span class="big">${mins}</span><span class="unit">分</span></div>`;
+      const chip = n.d==null ? '' : `<span class="chip ${delayClass(n.d)}">${delayText(n.d)}</span>`;
+      const dep = n.d ? `<s>${fmtSec(n.time)}</s>${fmtSec(n.est)}発` : `${fmtSec(n.time)}発`;
+      const arr = `${esc(n.destName)} 着 ${fmtSec(n.destEst)}` + (n.destD ? `（定刻 ${fmtSec(n.destTime)}）` : '');
+      const st = statusLine(n.veh);
+      const where = st ? `<div class="where"><span class="dot"></span>${esc(st)}</div>`
+                       : `<div class="where"><span class="dot off"></span>まだ出発していません（定刻で表示）</div>`;
+      body=`<div class="next">${count}<div class="meta"><div class="dep">${dep}${chip}</div>${arr}</div></div>${where}`;
+      if(rows.length>1) body+=`<div class="later">${rows.slice(1).map(x=>`<span>次<b>${fmtSec(x.est)}</b>${x.d?' <span class="chip '+delayClass(x.d)+'">'+delayText(x.d)+'</span>':''}</span>`).join('')}</div>`;
+    }
+    card.innerHTML=`<div class="sign"><span class="num">${esc(r)}</span><div class="route"><span class="stop">${esc(from)}</span><span class="to">${esc(toLabel)} 行き</span></div></div><div class="body">${body}</div>`;
+    home.appendChild(card);
+  });
+}
+const renderBoard = renderHome;
 function buildStopIndex(){
   const idx={};
   for(const [trip_id,t] of Object.entries(S.trips)){
@@ -387,14 +483,8 @@ function drawStatic(){
     if(!s.lat) continue; bounds.push([s.lat,s.lon]);
     L.circleMarker([s.lat,s.lon],{radius:4,color:'#7a1f2e',weight:1.5,fillColor:'#fff',fillOpacity:1}).bindTooltip(s.name).addTo(stopLayer);
   }
-  if(bounds.length) map.fitBounds(bounds,{padding:[20,20]});
-  // stop selector (dedupe by name, sort by name)
-  const sel=$('stopSel'); sel.innerHTML='<option value="">バス停を選ぶ…</option>';
-  const names={}; for(const [id,s] of Object.entries(S.stops)){ (names[s.name]=names[s.name]||[]).push(id); }
-  Object.keys(names).sort((a,b)=>a.localeCompare(b,'ja')).forEach(n=>{ names[n].forEach((id,i)=>{ const o=document.createElement('option'); o.value=id; o.textContent=n+(names[n].length>1?'（'+(i+1)+'）':''); sel.appendChild(o); }); });
-  if(pref.stop && S.stops[pref.stop]) sel.value=pref.stop;
-  $('badge1').textContent=pref.routes[0]||''; $('badge2').textContent=pref.routes[1]||''; $('badge2').hidden=!pref.routes[1];
-}
+  if(bounds.length){ S._bounds=bounds; map.fitBounds(bounds,{padding:[20,20]}); }
+  }
 function startTimer(){ if(timer) clearInterval(timer); timer=setInterval(refresh, pref.interval*1000); }
 
 async function boot(force){
@@ -411,13 +501,20 @@ async function boot(force){
 }
 
 $('refreshBtn').addEventListener('click', refresh);
-$('stopSel').addEventListener('change', e=>{ pref.stop=e.target.value; savePref(); renderBoard(); });
+$('stop70').addEventListener('change', e=>{ pref.stops['70']=e.target.value.trim(); savePref(); renderHome(); });
+$('stop71').addEventListener('change', e=>{ pref.stops['71']=e.target.value.trim(); savePref(); renderHome(); });
+$('hubStop').addEventListener('change', e=>{ pref.hub=e.target.value.trim()||'福井駅'; savePref(); renderHome(); });
+$('modeGo').addEventListener('click', ()=>{ pref.mode='go'; savePref(); renderHome(); });
+$('modeBack').addEventListener('click', ()=>{ pref.mode='back'; savePref(); renderHome(); });
+setInterval(()=>{ if(S) renderHome(); }, 10000);
+$('mapwrap').addEventListener('toggle', ()=>{ if($('mapwrap').open){ setTimeout(()=>{ map.invalidateSize(); if(S&&S._bounds) map.fitBounds(S._bounds,{padding:[20,20]}); },50); } });
 $('intervalSel').addEventListener('change', e=>{ pref.interval=+e.target.value; savePref(); startTimer(); });
 $('routesInput').addEventListener('change', e=>{ pref.routes=e.target.value.split(/[,、\s]+/).map(s=>s.trim()).filter(Boolean); savePref(); boot(true); });
 $('reloadStatic').addEventListener('click', ()=>boot(true));
 $('showRoutes').addEventListener('click', ()=>{ if(S&&S.allShort) showMsg('時刻表データにある系統: '+S.allShort.join(' ')); });
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && S) refresh(); });
 
+pref.mode='go';
 initMap();
 boot(false);
 })();
