@@ -58,42 +58,36 @@ section h2{font-size:14px;margin:0 0 8px 4px;color:var(--ink3);font-weight:700;l
 /* ---- the two boarding cards ---- */
 .home{display:grid;gap:14px}
 .card{background:var(--panel);border-radius:18px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line)}
-.card .sign{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--wine);color:var(--wine-ink)}
-.card.alt .sign{background:var(--taupe);color:var(--taupe-ink)}
-.card .sign .num{font-size:36px;font-weight:900;letter-spacing:-.02em;line-height:1;min-width:48px}
-.card .sign .route{display:flex;flex-direction:column;line-height:1.25}
-.card .sign .stop{font-size:23px;font-weight:700}
-.card .sign .to{font-size:15px;opacity:.82}
-.card .body{padding:14px 16px 16px}
-.card .next{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:16px}
-.card .left{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:118px}
-.card .count{display:flex;flex-direction:column;align-items:flex-start;line-height:1;white-space:nowrap}
-.card .count .row{display:flex;align-items:baseline;gap:2px}
-.card .count .pre{font-size:15px;color:var(--ink2);font-weight:700;letter-spacing:.06em;margin:0 0 -2px 4px}
-.card .count .big{font-size:70px;font-weight:900;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.card .sign{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--wine);color:#fff}
+.card.alt .sign{background:var(--taupe)}
+.card .sign .num{font-size:36px;font-weight:900;letter-spacing:-.02em;line-height:1;min-width:52px}
+.card .sign .route{display:flex;flex-direction:column;line-height:1.2;flex:1;min-width:0}
+.card .sign .stop{font-size:23px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .sign .to{font-size:14px;opacity:.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{display:inline-block;font-size:16px;font-weight:800;border-radius:999px;padding:4px 13px;white-space:nowrap;background:rgba(255,255,255,.92);color:var(--ink)}
+.chip.d-ok{color:var(--ok)} .chip.d-late{color:var(--late)} .chip.d-vlate{color:var(--vlate)} .chip.d-early{color:var(--early)}
+.card .body{padding:14px 16px 0}
+.card .hero{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:nowrap}
+.card .count{display:flex;align-items:baseline;gap:3px;line-height:1;white-space:nowrap;flex:none}
+.card .count .pre{font-size:16px;color:var(--ink2);font-weight:700;margin-right:3px}
+.card .count .big{font-size:68px;font-weight:900;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
 .card .count .unit{font-size:24px;font-weight:700}
-.card .count.soon{justify-content:center;min-height:86px}
-.card .count.soon .big{font-size:34px;color:var(--wine);letter-spacing:.02em}
+.card .count.soon .big{font-size:32px;color:var(--wine);letter-spacing:0}
 .card.alt .count.soon .big{color:var(--taupe)}
-.card .meta{font-size:18px;color:var(--ink2);line-height:1.5;min-width:0}
-.card .meta>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card .meta s{color:var(--ink3);font-weight:500;font-size:.85em;margin-right:4px}
-.card .meta b{color:var(--ink)}
-.card .meta .dep{font-size:26px;line-height:1.35;color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
-.card .meta .dep s{font-size:18px;margin-right:6px}
-.chip{display:inline-block;font-size:15px;font-weight:700;border-radius:999px;padding:2px 12px;vertical-align:middle}
-.chip.d-ok{background:var(--ok-bg);color:var(--ok)} .chip.d-late{background:var(--late-bg);color:var(--late)}
-.chip.d-vlate{background:var(--vlate-bg);color:var(--vlate)} .chip.d-early{background:var(--early-bg);color:var(--early)}
-.chip.d-na{background:var(--bg);color:var(--ink3)}
-.card .where{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:18px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .dep{font-size:30px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis;line-height:1}
+.card .dep s{font-weight:500;color:var(--ink3);font-size:18px;margin-right:6px}
+.card .dep em{font-style:normal;font-size:18px;font-weight:700;margin-left:2px}
+.card .where{display:flex;align-items:center;gap:9px;margin-top:12px;font-size:18px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card .where .dot{width:10px;height:10px;border-radius:50%;background:var(--wine);box-shadow:0 0 0 3px color-mix(in srgb,var(--wine) 22%,transparent);flex:none}
 .card.alt .where .dot{background:var(--taupe);box-shadow:0 0 0 3px color-mix(in srgb,var(--taupe) 22%,transparent)}
 .card .where .dot.off{background:var(--ink3);box-shadow:none}
-.card .later{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);display:flex;gap:18px;flex-wrap:wrap;font-size:16px;color:var(--ink3)}
-.card .later b{color:var(--ink);font-size:19px;font-variant-numeric:tabular-nums;margin-left:4px}
-.card .none{font-size:18px;color:var(--ink2)}
+.card .foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:14px -16px 0;padding:10px 16px;background:var(--bg);font-size:15px;color:var(--ink2);white-space:nowrap}
+.card .foot b{color:var(--ink);font-size:17px;font-variant-numeric:tabular-nums}
+.card .foot s{color:var(--ink3);font-size:14px;margin-right:4px}
+.card .foot .later{display:flex;gap:10px;overflow:hidden;text-overflow:ellipsis}
+.card .foot .later b{font-weight:700}
+.card .none{font-size:18px;color:var(--ink2);padding:4px 0 16px}
 .card .none b{color:var(--ink);font-size:22px}
-
 /* ---- running buses ---- */
 .bus{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--panel);
   border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin-bottom:8px}
@@ -127,7 +121,7 @@ select,input{font:inherit;padding:6px 10px;border:1px solid var(--line);border-r
 .busmarker span{font-weight:500;font-size:11px;opacity:.95}
 .links{display:flex;gap:18px;flex-wrap:wrap;padding:4px 4px 8px}
 .links a{color:var(--wine);font-weight:700;font-size:15px;text-decoration:none;border-bottom:1px solid currentColor}
-@media (min-width:760px){ .home{grid-template-columns:1fr 1fr} #map{height:440px} .card .count .big{font-size:84px} .card .meta .dep{font-size:30px} }
+@media (min-width:760px){ .home{grid-template-columns:1fr 1fr} #map{height:440px} .card .count .big{font-size:80px} }
 </style>
 </head>
 <body>
@@ -456,7 +450,7 @@ function renderHome(){
     const toNames = mode==='go' ? [pref.hub] : homeStops;
     const {rows,found}=departures(r, from, toNames, day, 3);
     const card=document.createElement('div'); card.className='card'+(i?' alt':'');
-    let body='', toLabel = mode==='go'?pref.hub:(rows[0]?rows[0].destName:homeStops.join('／'));
+    let body='', chip='', toLabel = mode==='go'?pref.hub:(rows[0]?rows[0].destName:homeStops.join('／'));
     if(!found){ body=`<div class="none">「${esc(from)}」というバス停が時刻表に見つかりません。設定で確認してください。</div>`; }
     else if(!rows.length){
       const nd=new Date(); nd.setDate(nd.getDate()+1); const day2={ds:yyyymmdd(nd), dow:nd.getDay(), secNow:-1};
@@ -464,20 +458,20 @@ function renderHome(){
       body=`<div class="none">今日の便はもうありません${nx?`<br>明日の始発 <b>${fmtSec(nx.time)}</b>`:''}</div>`;
     } else {
       const n=rows[0]; const mins=Math.round((n.est-day.secNow)/60);
-      const count = mins<=0 ? '<div class="count soon"><div class="row"><span class="big">まもなく</span></div></div>'
-                            : `<div class="count"><span class="pre">あと</span><div class="row"><span class="big">${mins}</span><span class="unit">分</span></div></div>`;
-      const chip = n.d==null ? '' : `<span class="chip ${delayClass(n.d)}">${delayText(n.d)}</span>`;
-      const dep = n.d ? `<s>${fmtSec(n.time)}</s>${fmtSec(n.est)}発` : `${fmtSec(n.time)}発`;
-      const arr = `<div>${esc(n.destName)} 着 ${n.destD?`<s>${fmtSec(n.destTime)}</s>`:''}<b>${fmtSec(n.destEst)}</b></div>`;
+      const count = mins<=0 ? '<div class="count soon"><span class="big">まもなく</span></div>'
+                            : `<div class="count"><span class="pre">あと</span><span class="big">${mins}</span><span class="unit">分</span></div>`;
+      chip = n.d==null ? '' : `<span class="chip ${delayClass(n.d)}">${delayText(n.d)}</span>`;
+      const dep = `<div class="dep">${n.d?`<s>${fmtSec(n.time)}</s>`:''}${fmtSec(n.est)}<em>発</em></div>`;
       const st = statusLine(n.veh);
       const where = st ? `<div class="where"><span class="dot"></span>${esc(st)}</div>`
                        : `<div class="where"><span class="dot off"></span>まだ出発していません（定刻で表示）</div>`;
-      body=`<div class="next"><div class="left">${count}${chip}</div><div class="meta"><div class="dep">${dep}</div>${arr}</div></div>${where}`;
-      if(rows.length>1) body+=`<div class="later">${rows.slice(1).map(x=>`<span>次<b>${fmtSec(x.est)}</b>${x.d?' <span class="chip '+delayClass(x.d)+'">'+delayText(x.d)+'</span>':''}</span>`).join('')}</div>`;
+      const arr = `<span>${esc(n.destName)} 着 ${n.destD?`<s>${fmtSec(n.destTime)}</s>`:''}<b>${fmtSec(n.destEst)}</b></span>`;
+      const later = rows.length>1 ? `<span class="later">${rows.slice(1).map(x=>`<span>次 <b>${fmtSec(x.est)}</b></span>`).join('')}</span>` : '';
+      body=`<div class="hero">${count}${dep}</div>${where}<div class="foot">${arr}${later}</div>`;
     }
     const rname = ROUTE_NAMES[r] || (Object.values(S.routes).find(x=>x.short===r)||{}).long || '';
     const toText = mode==='go' ? rname : `${esc(toLabel)} 行き${rname?'・'+esc(rname):''}`;
-    card.innerHTML=`<div class="sign"><span class="num">${esc(r)}</span><div class="route"><span class="stop">${esc(from)}</span><span class="to">${toText}</span></div></div><div class="body">${body}</div>`;
+    card.innerHTML=`<div class="sign"><span class="num">${esc(r)}</span><div class="route"><span class="stop">${esc(from)}</span><span class="to">${toText}</span></div>${chip}</div><div class="body">${body}</div>`;
     home.appendChild(card);
   });
 }
