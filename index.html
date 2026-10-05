@@ -8,10 +8,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
 <meta name="theme-color" content="#7a1f2e">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<link rel="icon" href="favicon.ico">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=3">
+<link rel="icon" href="favicon.ico?v=3">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3">
+<link rel="manifest" href="manifest.json?v=3">
 <meta name="apple-mobile-web-app-title" content="バスいまどこ">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -65,21 +65,22 @@ section h2{font-size:14px;margin:0 0 8px 4px;color:var(--ink3);font-weight:700;l
 .card .sign .stop{font-size:23px;font-weight:700}
 .card .sign .to{font-size:15px;opacity:.82}
 .card .body{padding:14px 16px 16px}
-.card .next{display:flex;flex-direction:column;gap:6px}
-.card .top{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
-.card .count{display:flex;align-items:baseline;gap:4px;line-height:1;white-space:nowrap}
-.card .count .pre{font-size:18px;color:var(--ink2);font-weight:700;margin-right:2px}
-.card .count .big{font-size:72px;font-weight:900;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
-.card .count .unit{font-size:26px;font-weight:700}
+.card .next{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:16px}
+.card .left{display:flex;flex-direction:column;align-items:center;gap:6px}
+.card .count{display:flex;flex-direction:column;align-items:center;line-height:1;white-space:nowrap}
+.card .count .row{display:flex;align-items:baseline;gap:2px}
+.card .count .pre{font-size:14px;color:var(--ink3);font-weight:700;letter-spacing:.14em;margin-bottom:3px}
+.card .count .big{font-size:70px;font-weight:900;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.card .count .unit{font-size:24px;font-weight:700}
 .card .count.soon .big{font-size:40px;color:var(--wine)}
 .card.alt .count.soon .big{color:var(--taupe)}
-.card .meta{font-size:20px;color:var(--ink2);line-height:1.5;min-width:0}
+.card .meta{font-size:18px;color:var(--ink2);line-height:1.5;min-width:0}
 .card .meta>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card .meta s{color:var(--ink3);font-weight:500;font-size:.85em;margin-right:4px}
 .card .meta b{color:var(--ink)}
-.card .meta .dep{font-size:30px;line-height:1.3;margin-top:2px;color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
-.card .meta .dep s{font-size:21px;margin-right:8px}
-.chip{display:inline-block;font-size:16px;font-weight:700;border-radius:999px;padding:3px 12px;vertical-align:middle;margin-left:6px;margin-bottom:10px}
+.card .meta .dep{font-size:26px;line-height:1.35;color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+.card .meta .dep s{font-size:18px;margin-right:6px}
+.chip{display:inline-block;font-size:15px;font-weight:700;border-radius:999px;padding:2px 12px;vertical-align:middle}
 .chip.d-ok{background:var(--ok-bg);color:var(--ok)} .chip.d-late{background:var(--late-bg);color:var(--late)}
 .chip.d-vlate{background:var(--vlate-bg);color:var(--vlate)} .chip.d-early{background:var(--early-bg);color:var(--early)}
 .chip.d-na{background:var(--bg);color:var(--ink3)}
@@ -125,7 +126,7 @@ select,input{font:inherit;padding:6px 10px;border:1px solid var(--line);border-r
 .busmarker span{font-weight:500;font-size:11px;opacity:.95}
 .links{display:flex;gap:18px;flex-wrap:wrap;padding:4px 4px 8px}
 .links a{color:var(--wine);font-weight:700;font-size:15px;text-decoration:none;border-bottom:1px solid currentColor}
-@media (min-width:760px){ .home{grid-template-columns:1fr 1fr} #map{height:440px} .card .count .big{font-size:84px} }
+@media (min-width:760px){ .home{grid-template-columns:1fr 1fr} #map{height:440px} .card .count .big{font-size:84px} .card .meta .dep{font-size:30px} }
 </style>
 </head>
 <body>
@@ -462,15 +463,15 @@ function renderHome(){
       body=`<div class="none">今日の便はもうありません${nx?`<br>明日の始発 <b>${fmtSec(nx.time)}</b>`:''}</div>`;
     } else {
       const n=rows[0]; const mins=Math.round((n.est-day.secNow)/60);
-      const count = mins<=0 ? '<div class="count soon"><span class="big">まもなく</span></div>'
-                            : `<div class="count"><span class="pre">あと</span><span class="big">${mins}</span><span class="unit">分</span></div>`;
+      const count = mins<=0 ? '<div class="count soon"><span class="pre">&nbsp;</span><div class="row"><span class="big">まもなく</span></div></div>'
+                            : `<div class="count"><span class="pre">あと</span><div class="row"><span class="big">${mins}</span><span class="unit">分</span></div></div>`;
       const chip = n.d==null ? '' : `<span class="chip ${delayClass(n.d)}">${delayText(n.d)}</span>`;
       const dep = n.d ? `<s>${fmtSec(n.time)}</s>${fmtSec(n.est)}発` : `${fmtSec(n.time)}発`;
       const arr = `<div>${esc(n.destName)} 着 ${n.destD?`<s>${fmtSec(n.destTime)}</s>`:''}<b>${fmtSec(n.destEst)}</b></div>`;
       const st = statusLine(n.veh);
       const where = st ? `<div class="where"><span class="dot"></span>${esc(st)}</div>`
                        : `<div class="where"><span class="dot off"></span>まだ出発していません（定刻で表示）</div>`;
-      body=`<div class="next"><div class="top">${count}${chip}</div><div class="meta"><div class="dep">${dep}</div>${arr}</div></div>${where}`;
+      body=`<div class="next"><div class="left">${count}${chip}</div><div class="meta"><div class="dep">${dep}</div>${arr}</div></div>${where}`;
       if(rows.length>1) body+=`<div class="later">${rows.slice(1).map(x=>`<span>次<b>${fmtSec(x.est)}</b>${x.d?' <span class="chip '+delayClass(x.d)+'">'+delayText(x.d)+'</span>':''}</span>`).join('')}</div>`;
     }
     const rname = ROUTE_NAMES[r] || (Object.values(S.routes).find(x=>x.short===r)||{}).long || '';
