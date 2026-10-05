@@ -28,88 +28,88 @@
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
   font-family:"Zen Kaku Gothic New","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI","Meiryo",system-ui,sans-serif;
-  font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
 body{display:flex;flex-direction:column}
 
 header{display:flex;align-items:center;gap:10px;padding:12px 16px 10px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;
   background:var(--bg)}
-header h1{font-size:15px;font-weight:700;margin:0;flex:1;letter-spacing:.04em;color:var(--ink2)}
+header h1{font-size:17px;font-weight:700;margin:0;flex:1;letter-spacing:.04em;color:var(--ink2)}
 button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:6px 14px;font-weight:700}
 button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--wine);outline-offset:2px}
 .seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px}
-.seg button{border:0;padding:5px 14px;font-size:13px;background:transparent;color:var(--ink2)}
+.seg button{border:0;padding:6px 16px;font-size:15px;background:transparent;color:var(--ink2)}
 .seg button.on{background:var(--ink);color:var(--bg)}
-#refreshBtn{width:38px;height:38px;padding:0;display:grid;place-items:center;font-size:18px;line-height:1}
+#refreshBtn{width:42px;height:42px;padding:0;display:grid;place-items:center;font-size:20px;line-height:1}
 #refreshBtn.spin{animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){#refreshBtn.spin{animation:none}}
 
 main{flex:1;overflow:auto;padding:4px 14px 28px;display:flex;flex-direction:column;gap:18px;width:100%;max-width:1040px;margin:0 auto}
-.status{font-size:12.5px;color:var(--ink3);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:0 4px}
-.msg{background:var(--late-bg);color:var(--ink);border-radius:12px;padding:10px 14px;font-size:14px}
+.status{font-size:14px;color:var(--ink3);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:0 4px}
+.msg{background:var(--late-bg);color:var(--ink);border-radius:12px;padding:10px 14px;font-size:16px}
 .msg.err{background:var(--vlate-bg)}
-section h2{font-size:12.5px;margin:0 0 8px 4px;color:var(--ink3);font-weight:700;letter-spacing:.06em}
+section h2{font-size:14px;margin:0 0 8px 4px;color:var(--ink3);font-weight:700;letter-spacing:.06em}
 
 /* ---- the two boarding cards ---- */
 .home{display:grid;gap:14px}
 .card{background:var(--panel);border-radius:18px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line)}
 .card .sign{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--wine);color:var(--wine-ink)}
 .card.alt .sign{background:var(--taupe);color:var(--taupe-ink)}
-.card .sign .num{font-size:30px;font-weight:900;letter-spacing:-.02em;line-height:1;min-width:48px}
+.card .sign .num{font-size:36px;font-weight:900;letter-spacing:-.02em;line-height:1;min-width:48px}
 .card .sign .route{display:flex;flex-direction:column;line-height:1.25}
-.card .sign .stop{font-size:19px;font-weight:700}
-.card .sign .to{font-size:12.5px;opacity:.82}
+.card .sign .stop{font-size:23px;font-weight:700}
+.card .sign .to{font-size:15px;opacity:.82}
 .card .body{padding:14px 16px 16px}
 .card .next{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
 .card .count{display:flex;align-items:baseline;gap:4px;line-height:1}
-.card .count .pre{font-size:15px;color:var(--ink2);font-weight:700}
-.card .count .big{font-size:64px;font-weight:900;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
-.card .count .unit{font-size:20px;font-weight:700}
-.card .count.soon .big{font-size:40px;color:var(--wine)}
+.card .count .pre{font-size:18px;color:var(--ink2);font-weight:700}
+.card .count .big{font-size:76px;font-weight:900;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.card .count .unit{font-size:24px;font-weight:700}
+.card .count.soon .big{font-size:48px;color:var(--wine)}
 .card.alt .count.soon .big{color:var(--taupe)}
-.card .meta{font-size:14px;color:var(--ink2);line-height:1.6;flex:1;min-width:150px}
-.card .meta .dep{font-size:17px;color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
-.card .meta .dep s{font-weight:500;color:var(--ink3);font-size:14px;margin-right:6px}
-.chip{display:inline-block;font-size:12.5px;font-weight:700;border-radius:999px;padding:1px 9px;vertical-align:middle;margin-left:6px}
+.card .meta{font-size:17px;color:var(--ink2);line-height:1.6;flex:1;min-width:150px}
+.card .meta .dep{font-size:22px;color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+.card .meta .dep s{font-weight:500;color:var(--ink3);font-size:17px;margin-right:6px}
+.chip{display:inline-block;font-size:15px;font-weight:700;border-radius:999px;padding:1px 9px;vertical-align:middle;margin-left:6px}
 .chip.d-ok{background:var(--ok-bg);color:var(--ok)} .chip.d-late{background:var(--late-bg);color:var(--late)}
 .chip.d-vlate{background:var(--vlate-bg);color:var(--vlate)} .chip.d-early{background:var(--early-bg);color:var(--early)}
 .chip.d-na{background:var(--bg);color:var(--ink3)}
-.card .where{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:14px;color:var(--ink2)}
+.card .where{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:17px;color:var(--ink2)}
 .card .where .dot{width:10px;height:10px;border-radius:50%;background:var(--wine);box-shadow:0 0 0 3px color-mix(in srgb,var(--wine) 22%,transparent);flex:none}
 .card.alt .where .dot{background:var(--taupe);box-shadow:0 0 0 3px color-mix(in srgb,var(--taupe) 22%,transparent)}
 .card .where .dot.off{background:var(--ink3);box-shadow:none}
-.card .later{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--ink3)}
-.card .later b{color:var(--ink);font-size:15px;font-variant-numeric:tabular-nums;margin-left:4px}
-.card .none{font-size:15px;color:var(--ink2)}
-.card .none b{color:var(--ink);font-size:18px}
+.card .later{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);display:flex;gap:18px;flex-wrap:wrap;font-size:16px;color:var(--ink3)}
+.card .later b{color:var(--ink);font-size:19px;font-variant-numeric:tabular-nums;margin-left:4px}
+.card .none{font-size:18px;color:var(--ink2)}
+.card .none b{color:var(--ink);font-size:22px}
 
 /* ---- running buses ---- */
 .bus{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;background:var(--panel);
   border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin-bottom:8px}
-.badge{display:inline-flex;align-items:center;justify-content:center;min-width:36px;height:28px;padding:0 8px;border-radius:8px;
-  background:var(--wine);color:#fff;font-weight:900;font-size:15px}
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:32px;padding:0 9px;border-radius:8px;
+  background:var(--wine);color:#fff;font-weight:900;font-size:17px}
 .badge.alt{background:var(--taupe)}
 .bus .dest{font-weight:700}
-.bus .sub{font-size:13px;color:var(--ink2)}
-.delay{font-weight:900;font-size:19px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-.delay small{display:block;font-size:11px;font-weight:500;color:var(--ink3)}
+.bus .sub{font-size:15px;color:var(--ink2)}
+.delay{font-weight:900;font-size:22px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.delay small{display:block;font-size:13px;font-weight:500;color:var(--ink3)}
 .d-ok{color:var(--ok)} .d-late{color:var(--late)} .d-vlate{color:var(--vlate)} .d-early{color:var(--early)} .d-na{color:var(--ink3)}
 
-details.mapwrap summary,details.settings summary{cursor:pointer;font-size:13px;color:var(--ink2);padding:6px 4px;font-weight:700;list-style:none}
+details.mapwrap summary,details.settings summary{cursor:pointer;font-size:15px;color:var(--ink2);padding:6px 4px;font-weight:700;list-style:none}
 details summary::-webkit-details-marker{display:none}
 details summary::before{content:"＋";display:inline-block;width:18px;color:var(--ink3)}
 details[open] summary::before{content:"－"}
 #map{height:36vh;min-height:240px;border-radius:14px;overflow:hidden;margin-top:6px;background:#e6e8e4}
-.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;font-size:14px;color:var(--ink2)}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;font-size:16px;color:var(--ink2)}
 select,input{font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);max-width:100%}
 .controls button{border-radius:10px;font-weight:500}
-.empty{color:var(--ink3);font-size:14px;padding:6px 4px}
+.empty{color:var(--ink3);font-size:16px;padding:6px 4px}
 .busmarker{background:var(--wine);color:#fff;font-weight:900;font-size:12px;border-radius:14px;padding:2px 8px;border:2px solid #fff;
   box-shadow:0 1px 4px rgba(0,0,0,.35);white-space:nowrap;line-height:1.3}
 .busmarker.alt{background:var(--taupe)}
 .busmarker span{font-weight:500;font-size:11px;opacity:.95}
-footer{font-size:11px;color:var(--ink3);padding:0 16px 12px;max-width:1040px;margin:0 auto;width:100%}
-@media (min-width:760px){ .home{grid-template-columns:1fr 1fr} #map{height:440px} .card .count .big{font-size:72px} }
+footer{font-size:12px;color:var(--ink3);padding:0 16px 12px;max-width:1040px;margin:0 auto;width:100%}
+@media (min-width:760px){ .home{grid-template-columns:1fr 1fr} #map{height:440px} .card .count .big{font-size:88px} }
 </style>
 </head>
 <body>
@@ -160,6 +160,7 @@ const URL_VEH = BASE + '/gtfs/realtime/odpt_KeifukuBus_keifuku_rosen_vehicle';
 const URL_TU  = BASE + '/gtfs/realtime/odpt_KeifukuBus_keifuku_rosen_trip_update';
 const CACHE_KEY = 'kfbus_static_v1';
 const PREF_KEY  = 'kfbus_pref_v1';
+const ROUTE_NAMES = {'70':'道守高校先回り','71':'ベル前先回り'};
 
 const $ = id => document.getElementById(id);
 const pref = loadPref();
@@ -450,7 +451,9 @@ function renderHome(){
       body=`<div class="next">${count}<div class="meta"><div class="dep">${dep}${chip}</div>${arr}</div></div>${where}`;
       if(rows.length>1) body+=`<div class="later">${rows.slice(1).map(x=>`<span>次<b>${fmtSec(x.est)}</b>${x.d?' <span class="chip '+delayClass(x.d)+'">'+delayText(x.d)+'</span>':''}</span>`).join('')}</div>`;
     }
-    card.innerHTML=`<div class="sign"><span class="num">${esc(r)}</span><div class="route"><span class="stop">${esc(from)}</span><span class="to">${esc(toLabel)} 行き</span></div></div><div class="body">${body}</div>`;
+    const rname = ROUTE_NAMES[r] || (Object.values(S.routes).find(x=>x.short===r)||{}).long || '';
+    const toText = mode==='go' ? rname : `${esc(toLabel)} 行き${rname?'・'+esc(rname):''}`;
+    card.innerHTML=`<div class="sign"><span class="num">${esc(r)}</span><div class="route"><span class="stop">${esc(from)}</span><span class="to">${toText}</span></div></div><div class="body">${body}</div>`;
     home.appendChild(card);
   });
 }
