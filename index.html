@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>京福バス 70・71系統 いまどこ</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --ink:#1d1d1b; --ink2:#5a5a55; --line:#dcdcd6;
+  --wine:#7a1f2e; --wine2:#9b3344; --taupe:#8c7f72;
+  --ok:#2d6a3e; --late:#b45309; --vlate:#b91c1c; --early:#1d4ed8;
+  --r:10px;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  box-sizing:border-box;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI","Meiryo",system-ui,sans-serif;
+  font-size:15px;line-height:1.5}
+body{display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--line);
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+header h1{font-size:16px;font-weight:700;margin:0;flex:1;letter-spacing:.02em}
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:26px;padding:0 7px;border-radius:6px;
+  background:var(--wine);color:#fff;font-weight:800;font-size:15px;letter-spacing:.02em}
+.badge.alt{background:var(--taupe)}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:6px 10px}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--wine2);outline-offset:2px}
+button.primary{background:var(--wine);color:#fff;border-color:var(--wine)}
+#map{height:46vh;min-height:260px;background:#e6e8e4}
+main{flex:1;overflow:auto;padding:10px 12px 24px;display:flex;flex-direction:column;gap:14px}
+.status{font-size:13px;color:var(--ink2);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.status b{color:var(--ink)}
+.msg{background:#fff7e6;border:1px solid #f1d8a3;border-radius:var(--r);padding:10px 12px;font-size:14px}
+.msg.err{background:#fdecec;border-color:#f0b4b4}
+section h2{font-size:14px;margin:0 0 6px;color:var(--ink2);font-weight:600}
+.bus{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin-bottom:8px}
+.bus .dest{font-weight:700}
+.bus .sub{font-size:13px;color:var(--ink2)}
+.delay{font-weight:800;font-size:18px;text-align:right;white-space:nowrap}
+.delay small{display:block;font-size:11px;font-weight:500;color:var(--ink2)}
+.d-ok{color:var(--ok)} .d-late{color:var(--late)} .d-vlate{color:var(--vlate)} .d-early{color:var(--early)} .d-na{color:var(--ink2)}
+.board{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.board .row{display:grid;grid-template-columns:auto auto 1fr auto;gap:10px;align-items:center;padding:8px 12px;border-top:1px solid var(--line);font-size:14px}
+.board .row:first-child{border-top:0}
+.board .time{font-variant-numeric:tabular-nums;font-weight:700;font-size:16px}
+.board .time s{color:var(--ink2);font-weight:400;font-size:13px;margin-right:4px}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+select,input{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);max-width:100%}
+details.settings{font-size:14px;color:var(--ink2)}
+details.settings summary{cursor:pointer}
+details.settings .controls{margin-top:8px}
+.empty{color:var(--ink2);font-size:14px;padding:8px 2px}
+.busmarker{background:var(--wine);color:#fff;font-weight:800;font-size:12px;border-radius:14px;padding:2px 7px;border:2px solid #fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.35);white-space:nowrap;line-height:1.3}
+.busmarker.alt{background:var(--taupe)}
+.busmarker span{font-weight:500;font-size:11px;opacity:.95}
+.stopdot{width:8px;height:8px;border-radius:50%;background:#fff;border:2px solid var(--wine)}
+footer{font-size:11px;color:var(--ink2);padding:0 12px 10px}
+@media (prefers-reduced-motion: no-preference){ .bus{transition:background .3s} }
+@media (min-width:900px){
+  body{flex-direction:row;flex-wrap:wrap}
+  header{width:100%}
+  #map{width:58%;height:calc(100vh - 56px);min-height:0}
+  main{width:42%;height:calc(100vh - 56px)}
+  footer{width:100%}
+}
+</style>
+</head>
+<body>
+<header>
+  <span class="badge" id="badge1">70</span><span class="badge alt" id="badge2">71</span>
+  <h1>京福バス いまどこ</h1>
+  <button id="refreshBtn" title="今すぐ更新">更新</button>
+</header>
+<div id="map" role="img" aria-label="バスの現在地マップ"></div>
+<main>
+  <div class="status"><span id="statusText">準備中…</span><span id="updatedAt"></span></div>
+  <div id="msg" hidden></div>
+
+  <section>
+    <h2>運行中のバス</h2>
+    <div id="busList"><div class="empty">読み込み中…</div></div>
+  </section>
+
+  <section>
+    <h2>バス停の発車予定</h2>
+    <div class="controls">
+      <select id="stopSel" aria-label="バス停を選ぶ"><option value="">バス停を選ぶ…</option></select>
+    </div>
+    <div id="board" class="board" style="margin-top:8px" hidden></div>
+    <div id="boardEmpty" class="empty">バス停を選ぶと、次に来るバスの予定（遅れ反映）を表示します。</div>
+  </section>
+
+  <details class="settings">
+    <summary>設定</summary>
+    <div class="controls">
+      <label>系統 <input id="routesInput" value="70,71" size="10"></label>
+      <label>更新間隔 <select id="intervalSel"><option value="15">15秒</option><option value="30" selected>30秒</option><option value="60">60秒</option></select></label>
+      <button id="reloadStatic">時刻表データを取り直す</button>
+      <button id="showRoutes">系統一覧</button>
+    </div>
+  </details>
+</main>
+<footer>データ：公共交通オープンデータセンター（京福バス GTFS / GTFS-RT, CC BY 4.0）・地図 © OpenStreetMap contributors</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+(() => {
+'use strict';
+const BASE = 'https://api-public.odpt.org/api/v4';
+const URL_STATIC = BASE + '/files/odpt/KeifukuBus/keifuku_rosen.zip?date=current';
+const URL_VEH = BASE + '/gtfs/realtime/odpt_KeifukuBus_keifuku_rosen_vehicle';
+const URL_TU  = BASE + '/gtfs/realtime/odpt_KeifukuBus_keifuku_rosen_trip_update';
+const CACHE_KEY = 'kfbus_static_v1';
+const PREF_KEY  = 'kfbus_pref_v1';
+
+const $ = id => document.getElementById(id);
+const pref = loadPref();
+$('routesInput').value = pref.routes.join(',');
+$('intervalSel').value = String(pref.interval);
+
+// ---------- state ----------
+let S = null;            // static subset: {fetched, routes:{route_id:{short,long}}, trips:{}, stops:{}, shapes:{}, cal, calDates, targets}
+let map, busLayer, stopLayer, shapeLayer;
+let timer = null;
+let lastVeh = [], lastTU = {};
+
+// ---------- helpers ----------
+function loadPref(){
+  try{ const p = JSON.parse(localStorage.getItem(PREF_KEY)||'{}');
+    return { routes:(p.routes&&p.routes.length)?p.routes:['70','71'], interval:p.interval||30, stop:p.stop||'' };
+  }catch(e){ return {routes:['70','71'],interval:30,stop:''}; }
+}
+function savePref(){ try{ localStorage.setItem(PREF_KEY, JSON.stringify(pref)); }catch(e){} }
+function setStatus(t){ $('statusText').textContent = t; }
+function showMsg(t, err){ const m=$('msg'); m.textContent=t; m.className='msg'+(err?' err':''); m.hidden=false; }
+function hideMsg(){ $('msg').hidden=true; }
+function hhmm(d){ return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
+function parseGtfsTime(t){ // "25:10:00" -> seconds since local midnight of service day
+  const a=t.split(':'); return (+a[0])*3600+(+a[1])*60+(+(a[2]||0)); }
+function fmtSec(sec){ const h=Math.floor(sec/3600)%24, m=Math.floor(sec%3600/60); return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
+function yyyymmdd(d){ return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); }
+
+// CSV (RFC4180-ish) -> array of objects
+function parseCSV(text){
+  const rows=[]; let row=[], field='', q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){field+='"';i++;} else q=false; } else field+=c; }
+    else if(c==='"') q=true;
+    else if(c===','){ row.push(field); field=''; }
+    else if(c==='\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+    else if(c!=='\r') field+=c;
+  }
+  if(field.length||row.length){ row.push(field); rows.push(row); }
+  if(!rows.length) return [];
+  const head=rows[0].map(h=>h.replace(/^\ufeff/,'').trim());
+  const out=[]; for(let r=1;r<rows.length;r++){ if(rows[r].length<2) continue; const o={}; head.forEach((h,i)=>o[h]=rows[r][i]??''); out.push(o); }
+  return out;
+}
+
+// ---------- minimal protobuf (GTFS-RT) ----------
+function pbFields(buf){ // returns [{f, wt, v}] ; v = BigInt for varint/64/32, Uint8Array for len-delimited
+  const out=[]; let i=0;
+  while(i<buf.length){
+    let key=0n, shift=0n, b;
+    do{ b=buf[i++]; key|=BigInt(b&0x7f)<<shift; shift+=7n; }while(b&0x80);
+    const f=Number(key>>3n), wt=Number(key&7n);
+    if(wt===0){ let v=0n; shift=0n; do{ b=buf[i++]; v|=BigInt(b&0x7f)<<shift; shift+=7n; }while(b&0x80); out.push({f,wt,v}); }
+    else if(wt===1){ out.push({f,wt,v:buf.subarray(i,i+8)}); i+=8; }
+    else if(wt===5){ out.push({f,wt,v:buf.subarray(i,i+4)}); i+=4; }
+    else if(wt===2){ let len=0n; shift=0n; do{ b=buf[i++]; len|=BigInt(b&0x7f)<<shift; shift+=7n; }while(b&0x80); const n=Number(len); out.push({f,wt,v:buf.subarray(i,i+n)}); i+=n; }
+    else throw new Error('unsupported wire type '+wt);
+  }
+  return out;
+}
+const td = new TextDecoder();
+const str = v => td.decode(v);
+const i32 = v => Number(BigInt.asIntN(32, v));
+const u64 = v => Number(v);
+const f32 = v => new DataView(v.buffer, v.byteOffset, 4).getFloat32(0, true);
+
+function decodeTripDesc(buf){ const t={}; for(const x of pbFields(buf)){ if(x.f===1)t.trip_id=str(x.v); else if(x.f===5)t.route_id=str(x.v); else if(x.f===6)t.direction_id=u64(x.v); else if(x.f===2)t.start_time=str(x.v); else if(x.f===3)t.start_date=str(x.v);} return t; }
+function decodeSTE(buf){ const e={}; for(const x of pbFields(buf)){ if(x.f===1)e.delay=i32(x.v); else if(x.f===2)e.time=u64(x.v);} return e; }
+function decodeSTU(buf){ const s={}; for(const x of pbFields(buf)){ if(x.f===1)s.stop_sequence=u64(x.v); else if(x.f===4)s.stop_id=str(x.v); else if(x.f===2)s.arrival=decodeSTE(x.v); else if(x.f===3)s.departure=decodeSTE(x.v);} return s; }
+function decodeTU(buf){ const t={stu:[]}; for(const x of pbFields(buf)){ if(x.f===1)t.trip=decodeTripDesc(x.v); else if(x.f===2)t.stu.push(decodeSTU(x.v)); else if(x.f===4)t.timestamp=u64(x.v); else if(x.f===5)t.delay=i32(x.v); else if(x.f===3){ for(const y of pbFields(x.v)){ if(y.f===1)t.vehicle_id=str(y.v); if(y.f===2)t.vehicle_label=str(y.v);} } } return t; }
+function decodeVP(buf){ const v={}; for(const x of pbFields(buf)){
+  if(x.f===1)v.trip=decodeTripDesc(x.v);
+  else if(x.f===2){ for(const y of pbFields(x.v)){ if(y.f===1)v.lat=f32(y.v); else if(y.f===2)v.lon=f32(y.v); else if(y.f===3)v.bearing=f32(y.v);} }
+  else if(x.f===3)v.current_stop_sequence=u64(x.v);
+  else if(x.f===4)v.current_status=u64(x.v);
+  else if(x.f===5)v.timestamp=u64(x.v);
+  else if(x.f===7)v.stop_id=str(x.v);
+  else if(x.f===8){ for(const y of pbFields(x.v)){ if(y.f===1)v.vehicle_id=str(y.v); if(y.f===2)v.vehicle_label=str(y.v);} }
+} return v; }
+function decodeFeed(buf){ const ents=[]; for(const x of pbFields(buf)){ if(x.f===2){ const e={}; for(const y of pbFields(x.v)){ if(y.f===1)e.id=str(y.v); else if(y.f===3)e.trip_update=decodeTU(y.v); else if(y.f===4)e.vehicle=decodeVP(y.v);} ents.push(e);} } return ents; }
+
+// ---------- static GTFS ----------
+async function loadStatic(force){
+  const targets = pref.routes;
+  if(!force){
+    try{ const c=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');
+      if(c && c.v===1 && JSON.stringify(c.targets)===JSON.stringify(targets) && Date.now()-c.fetched < 7*86400e3){ S=c; return; }
+    }catch(e){}
+  }
+  setStatus('時刻表データを取得中…（初回のみ数MB）');
+  const res = await fetch(URL_STATIC);
+  if(!res.ok) throw new Error('時刻表データの取得に失敗 HTTP '+res.status);
+  const zip = await JSZip.loadAsync(await res.arrayBuffer());
+  const read = async n => { const f=zip.file(n); return f? parseCSV(await f.async('string')) : []; };
+
+  const routesAll = await read('routes.txt');
+  const routes={};
+  for(const r of routesAll){
+    const sn=(r.route_short_name||'').trim();
+    const hit = targets.some(t => sn===t || (!sn && (r.route_id.includes(t)||(r.route_long_name||'').includes(t))));
+    if(hit) routes[r.route_id]={short:sn||targets.find(t=>r.route_id.includes(t)||(r.route_long_name||'').includes(t)), long:r.route_long_name||''};
+  }
+  const allShort=[...new Set(routesAll.map(r=>(r.route_short_name||'').trim()||r.route_id))].sort((a,b)=>a.localeCompare(b,'ja',{numeric:true}));
+  if(!Object.keys(routes).length) throw new Error('系統「'+targets.join(',')+'」が時刻表データに見つかりません。設定の「系統一覧」で表記を確認してください。候補: '+allShort.slice(0,60).join(' '));
+
+  const trips={}; const shapeIds=new Set(); const serviceIds=new Set();
+  for(const t of await read('trips.txt')){
+    if(!routes[t.route_id]) continue;
+    trips[t.trip_id]={route_id:t.route_id, headsign:t.trip_headsign||'', dir:t.direction_id||'', service_id:t.service_id, shape_id:t.shape_id||'', stops:[]};
+    if(t.shape_id) shapeIds.add(t.shape_id); serviceIds.add(t.service_id);
+  }
+  const stopIds=new Set();
+  for(const s of await read('stop_times.txt')){
+    const t=trips[s.trip_id]; if(!t) continue;
+    t.stops.push([s.stop_id, +s.stop_sequence, parseGtfsTime(s.departure_time||s.arrival_time)]); stopIds.add(s.stop_id);
+  }
+  for(const t of Object.values(trips)) t.stops.sort((a,b)=>a[1]-b[1]);
+  const stops={};
+  for(const s of await read('stops.txt')){ if(stopIds.has(s.stop_id)) stops[s.stop_id]={name:s.stop_name, lat:+s.stop_lat, lon:+s.stop_lon}; }
+  const shapes={};
+  for(const p of await read('shapes.txt')){ if(!shapeIds.has(p.shape_id)) continue; (shapes[p.shape_id]=shapes[p.shape_id]||[]).push([+p.shape_pt_sequence,+p.shape_pt_lat,+p.shape_pt_lon]); }
+  for(const k in shapes) shapes[k]=shapes[k].sort((a,b)=>a[0]-b[0]).map(x=>[x[1],x[2]]);
+  const cal={}; for(const c of await read('calendar.txt')){ if(serviceIds.has(c.service_id)) cal[c.service_id]=c; }
+  const calDates={}; for(const c of await read('calendar_dates.txt')){ if(serviceIds.has(c.service_id)) (calDates[c.date]=calDates[c.date]||{})[c.service_id]=c.exception_type; }
+
+  S={v:1, fetched:Date.now(), targets, routes, trips, stops, shapes, cal, calDates, allShort};
+  try{ localStorage.setItem(CACHE_KEY, JSON.stringify(S)); }catch(e){ console.warn('cache skipped', e); }
+}
+
+function serviceActive(service_id, dateStr, dow){
+  const ex = S.calDates[dateStr] && S.calDates[dateStr][service_id];
+  if(ex==='1') return true; if(ex==='2') return false;
+  const c=S.cal[service_id]; if(!c) return false;
+  if(dateStr<c.start_date||dateStr>c.end_date) return false;
+  return c[['sunday','monday','tuesday','wednesday','thursday','friday','saturday'][dow]]==='1';
+}
+
+// ---------- realtime ----------
+async function fetchFeed(url){
+  const res=await fetch(url,{cache:'no-store'});
+  if(!res.ok) throw new Error('HTTP '+res.status+' '+url.split('/').pop());
+  return decodeFeed(new Uint8Array(await res.arrayBuffer()));
+}
+function delayOf(tu, stopSeq){
+  if(!tu) return null;
+  if(tu.stu.length){
+    let pick = tu.stu.find(s => stopSeq!=null && s.stop_sequence!=null && s.stop_sequence>=stopSeq) || tu.stu[0];
+    const e = pick.arrival && pick.arrival.delay!=null ? pick.arrival : (pick.departure && pick.departure.delay!=null ? pick.departure : null);
+    if(e) return e.delay;
+  }
+  return tu.delay!=null ? tu.delay : null;
+}
+function delayClass(d){ if(d==null) return 'd-na'; if(d<-60) return 'd-early'; if(d<180) return 'd-ok'; if(d<600) return 'd-late'; return 'd-vlate'; }
+function delayText(d){ if(d==null) return '―'; const m=Math.round(d/60); if(m===0) return '定刻'; return (m>0?'+':'')+m+'分'; }
+
+async function refresh(){
+  if(!S) return;
+  setStatus('更新中…');
+  try{
+    const [veh, tus] = await Promise.all([fetchFeed(URL_VEH), fetchFeed(URL_TU)]);
+    lastTU={}; for(const e of tus){ if(e.trip_update && e.trip_update.trip){ const t=e.trip_update.trip; if(t.trip_id) lastTU[t.trip_id]=e.trip_update; } }
+    lastVeh = veh.filter(e=>e.vehicle && e.vehicle.trip && (S.trips[e.vehicle.trip.trip_id] || S.routes[e.vehicle.trip.route_id])).map(e=>e.vehicle);
+    renderBuses(); renderBoard();
+    hideMsg();
+    const n=lastVeh.length;
+    setStatus(n? n+'台 運行中' : '対象系統のバスは今走っていません');
+    $('updatedAt').textContent = '更新 '+hhmm(new Date());
+  }catch(err){
+    console.error(err);
+    showMsg('リアルタイム情報の取得に失敗しました: '+err.message+'（通信状態、または時間帯によりデータが無い場合があります）', true);
+    setStatus('取得失敗');
+  }
+}
+
+function renderBuses(){
+  busLayer.clearLayers();
+  const list=$('busList'); list.innerHTML='';
+  if(!lastVeh.length){ list.innerHTML='<div class="empty">現在、対象系統で位置情報のあるバスはありません。</div>'; return; }
+  const items = lastVeh.map(v=>{
+    const trip=S.trips[v.trip.trip_id]||{};
+    const route=S.routes[trip.route_id||v.trip.route_id]||{short:'?'};
+    const tu=lastTU[v.trip.trip_id];
+    const d=delayOf(tu, v.current_stop_sequence);
+    let nextStop='';
+    if(v.stop_id && S.stops[v.stop_id]) nextStop=S.stops[v.stop_id].name;
+    else if(trip.stops && v.current_stop_sequence!=null){ const s=trip.stops.find(x=>x[1]===v.current_stop_sequence); if(s&&S.stops[s[0]]) nextStop=S.stops[s[0]].name; }
+    const statusWord = v.current_status===1 ? '停車中' : (v.current_status===0 ? 'まもなく' : 'へ向かっています');
+    const sched = trip.stops && trip.stops.length ? fmtSec(trip.stops[0][2])+'発' : '';
+    return {v,trip,route,d,nextStop,statusWord,sched};
+  }).sort((a,b)=> (a.route.short.localeCompare(b.route.short,'ja',{numeric:true})) || (a.sched.localeCompare(b.sched)));
+
+  const bounds=[];
+  for(const it of items){
+    const {v,trip,route,d,nextStop,statusWord,sched}=it;
+    const alt = route.short!==pref.routes[0];
+    const div=document.createElement('div'); div.className='bus';
+    div.innerHTML = `<span class="badge${alt?' alt':''}">${esc(route.short)}</span>
+      <div><div class="dest">${esc(trip.headsign||route.long||'')}</div>
+        <div class="sub">${sched?esc(sched)+'　':''}${nextStop?esc(nextStop)+' '+statusWord:'位置情報のみ'}</div></div>
+      <div class="delay ${delayClass(d)}">${delayText(d)}<small>${d==null?'遅れ情報なし':(v.timestamp?hhmm(new Date(v.timestamp*1000))+' 時点':'')}</small></div>`;
+    list.appendChild(div);
+    if(v.lat && v.lon){
+      const icon=L.divIcon({className:'', html:`<div class="busmarker${alt?' alt':''}">${esc(route.short)} <span>${esc(delayText(d))}</span></div>`, iconAnchor:[20,12]});
+      const m=L.marker([v.lat,v.lon],{icon}).addTo(busLayer);
+      m.bindPopup(`<b>${esc(route.short)} ${esc(trip.headsign||'')}</b><br>${esc(nextStop)} ${statusWord}<br>遅れ: ${delayText(d)}`);
+      bounds.push([v.lat,v.lon]);
+    }
+  }
+}
+
+function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderBoard(){
+  const stopId=$('stopSel').value; const board=$('board'), empty=$('boardEmpty');
+  if(!stopId){ board.hidden=true; empty.hidden=false; return; }
+  const now=new Date(); const nowSec=now.getHours()*3600+now.getMinutes()*60+now.getSeconds();
+  // service day: before 03:00 treat as previous day (GTFS 24h+ times)
+  const sday=new Date(now); let secNow=nowSec; if(now.getHours()<3){ sday.setDate(sday.getDate()-1); secNow+=86400; }
+  const ds=yyyymmdd(sday), dow=sday.getDay();
+  const byStop = S.stopIndex || buildStopIndex();
+  const cands=(byStop[stopId]||[]).filter(x=>serviceActive(S.trips[x.trip_id].service_id, ds, dow));
+  const rows=[];
+  for(const c of cands){
+    const tu=lastTU[c.trip_id]; const d = tu ? delayOf(tu, c.seq) : null;
+    const est=c.time+(d||0);
+    if(est < secNow-120) continue;
+    const trip=S.trips[c.trip_id]; const route=S.routes[trip.route_id];
+    const running=lastVeh.some(v=>v.trip.trip_id===c.trip_id);
+    rows.push({est, time:c.time, d, route, trip, running, last:c.last});
+  }
+  rows.sort((a,b)=>a.est-b.est);
+  const top=rows.slice(0,10);
+  if(!top.length){ board.hidden=true; empty.hidden=false; empty.textContent='この後の便は今日はもうありません。'; return; }
+  empty.hidden=true; board.hidden=false;
+  board.innerHTML = top.map(r=>{
+    const alt=r.route.short!==pref.routes[0];
+    const t = r.d ? `<s>${fmtSec(r.time)}</s>${fmtSec(r.est)}` : fmtSec(r.time);
+    const st = r.last ? '終点着' : (r.running ? (r.d==null?'運行中':delayText(r.d)) : '未出発');
+    return `<div class="row"><span class="badge${alt?' alt':''}">${esc(r.route.short)}</span><span class="time">${t}</span><span>${esc(r.trip.headsign)}</span><span class="${delayClass(r.running?r.d:null)}">${st}</span></div>`;
+  }).join('');
+}
+function buildStopIndex(){
+  const idx={};
+  for(const [trip_id,t] of Object.entries(S.trips)){
+    t.stops.forEach((s,i)=>{ (idx[s[0]]=idx[s[0]]||[]).push({trip_id, seq:s[1], time:s[2], last:i===t.stops.length-1}); });
+  }
+  S.stopIndex=idx; return idx;
+}
+
+// ---------- map & UI ----------
+function initMap(){
+  map=L.map('map',{zoomControl:true}).setView([36.064,136.22],12);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+  shapeLayer=L.layerGroup().addTo(map); stopLayer=L.layerGroup().addTo(map); busLayer=L.layerGroup().addTo(map);
+}
+function drawStatic(){
+  shapeLayer.clearLayers(); stopLayer.clearLayers();
+  const drawn=new Set(); const bounds=[];
+  for(const t of Object.values(S.trips)){
+    if(t.shape_id && S.shapes[t.shape_id] && !drawn.has(t.shape_id)){
+      drawn.add(t.shape_id);
+      const alt = S.routes[t.route_id].short!==pref.routes[0];
+      L.polyline(S.shapes[t.shape_id],{color:alt?'#8c7f72':'#7a1f2e',weight:3,opacity:.6}).addTo(shapeLayer);
+    }
+  }
+  for(const [id,s] of Object.entries(S.stops)){
+    if(!s.lat) continue; bounds.push([s.lat,s.lon]);
+    L.circleMarker([s.lat,s.lon],{radius:4,color:'#7a1f2e',weight:1.5,fillColor:'#fff',fillOpacity:1}).bindTooltip(s.name).addTo(stopLayer);
+  }
+  if(bounds.length) map.fitBounds(bounds,{padding:[20,20]});
+  // stop selector (dedupe by name, sort by name)
+  const sel=$('stopSel'); sel.innerHTML='<option value="">バス停を選ぶ…</option>';
+  const names={}; for(const [id,s] of Object.entries(S.stops)){ (names[s.name]=names[s.name]||[]).push(id); }
+  Object.keys(names).sort((a,b)=>a.localeCompare(b,'ja')).forEach(n=>{ names[n].forEach((id,i)=>{ const o=document.createElement('option'); o.value=id; o.textContent=n+(names[n].length>1?'（'+(i+1)+'）':''); sel.appendChild(o); }); });
+  if(pref.stop && S.stops[pref.stop]) sel.value=pref.stop;
+  $('badge1').textContent=pref.routes[0]||''; $('badge2').textContent=pref.routes[1]||''; $('badge2').hidden=!pref.routes[1];
+}
+function startTimer(){ if(timer) clearInterval(timer); timer=setInterval(refresh, pref.interval*1000); }
+
+async function boot(force){
+  try{
+    hideMsg();
+    await loadStatic(force);
+    drawStatic();
+    await refresh();
+    startTimer();
+  }catch(err){
+    console.error(err);
+    showMsg(err.message, true); setStatus('エラー');
+  }
+}
+
+$('refreshBtn').addEventListener('click', refresh);
+$('stopSel').addEventListener('change', e=>{ pref.stop=e.target.value; savePref(); renderBoard(); });
+$('intervalSel').addEventListener('change', e=>{ pref.interval=+e.target.value; savePref(); startTimer(); });
+$('routesInput').addEventListener('change', e=>{ pref.routes=e.target.value.split(/[,、\s]+/).map(s=>s.trim()).filter(Boolean); savePref(); boot(true); });
+$('reloadStatic').addEventListener('click', ()=>boot(true));
+$('showRoutes').addEventListener('click', ()=>{ if(S&&S.allShort) showMsg('時刻表データにある系統: '+S.allShort.join(' ')); });
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && S) refresh(); });
+
+initMap();
+boot(false);
+})();
+</script>
+</body>
+</html>
