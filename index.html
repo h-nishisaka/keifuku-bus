@@ -512,6 +512,9 @@ async function boot(force){
   try{
     hideMsg();
     await loadStatic(force);
+    renderHome();                 // 時刻表だけで即表示（遅れは後から上書き）
+    setStatus('遅れ情報を取得中…');
+    await new Promise(r=>setTimeout(r,0));  // 先にカードを描画させる
     drawStatic();
     await refresh();
     startTimer();
