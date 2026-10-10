@@ -67,12 +67,13 @@ section h2{font-size:14px;margin:0 0 8px 4px;color:var(--ink3);font-weight:700;l
 .chip{display:inline-block;font-size:16px;font-weight:800;border-radius:999px;padding:4px 13px;white-space:nowrap;background:rgba(255,255,255,.92);color:var(--ink)}
 .chip.d-ok{color:var(--ok)} .chip.d-late{color:var(--late)} .chip.d-vlate{color:var(--vlate)} .chip.d-early{color:var(--early)}
 .card .body{padding:14px 16px 0}
-.card .hero{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:nowrap}
-.card .count{display:flex;align-items:baseline;gap:3px;line-height:1;white-space:nowrap;flex:none}
+.card .hero{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:nowrap;height:72px}
+.card .count{display:flex;align-items:baseline;gap:3px;line-height:1;white-space:nowrap;flex:none;height:68px}
 .card .count .pre{font-size:16px;color:var(--ink2);font-weight:700;margin-right:3px}
 .card .count .big{font-size:68px;font-weight:900;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
 .card .count .unit{font-size:24px;font-weight:700}
-.card .count.soon .big{font-size:32px;color:var(--wine);letter-spacing:0}
+.card .count.soon{align-items:center}
+.card .count.soon .big{font-size:36px;color:var(--wine);letter-spacing:0;line-height:68px}
 .card.alt .count.soon .big{color:var(--taupe)}
 .card .dep{font-size:30px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis;line-height:1}
 .card .dep s{font-weight:500;color:var(--ink3);font-size:18px;margin-right:6px}
@@ -101,6 +102,7 @@ section h2{font-size:14px;margin:0 0 8px 4px;color:var(--ink3);font-weight:700;l
 .bus .dest small{font-weight:500;color:var(--ink2);margin-left:8px;font-size:14px}
 details.buswrap summary{cursor:pointer;font-size:15px;color:var(--ink2);padding:6px 4px;font-weight:700;list-style:none}
 details.buswrap #busList{margin-top:6px}
+.verify{margin-top:10px;font-size:15px;line-height:1.6;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;white-space:pre-line}
 color:var(--ink2)}
 .delay{font-weight:900;font-size:22px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .delay small{display:block;font-size:13px;font-weight:500;color:var(--ink3)}
@@ -121,7 +123,7 @@ select,input{font:inherit;padding:6px 10px;border:1px solid var(--line);border-r
 .busmarker span{font-weight:500;font-size:11px;opacity:.95}
 .links{display:flex;gap:18px;flex-wrap:wrap;padding:4px 4px 8px}
 .links a{color:var(--wine);font-weight:700;font-size:15px;text-decoration:none;border-bottom:1px solid currentColor}
-@media (min-width:760px){ .home{grid-template-columns:1fr 1fr} #map{height:440px} .card .count .big{font-size:80px} }
+@media (min-width:760px){ .home{grid-template-columns:1fr 1fr} #map{height:440px} .card .count .big{font-size:80px} .card .hero{height:84px} .card .count{height:80px} .card .count.soon .big{line-height:80px} }
 </style>
 </head>
 <body>
@@ -155,6 +157,10 @@ select,input{font:inherit;padding:6px 10px;border:1px solid var(--line);border-r
       <label>帰りの乗車 <input id="hubStop" value="福井駅" size="8"></label>
       <label>更新間隔 <select id="intervalSel"><option value="15">15秒</option><option value="30" selected>30秒</option><option value="60">60秒</option></select></label>
       <button id="reloadStatic">時刻表データを取り直す</button>
+      <button id="verifyBtn">GPSでバス位置を検証</button>
+    </div>
+    <div id="verifyOut" class="verify" hidden></div>
+    <div class="controls" hidden>
       <input id="routesInput" type="hidden" value="70,71">
     </div>
   </details>
@@ -423,7 +429,7 @@ function departures(routeShort, fromName, toNames, day, limit){
       if(seen.has(c.trip_id)) continue;
       if(!serviceActive(trip.service_id, day.ds, day.dow)) continue;
       // destination: first later stop whose name is in toNames; else terminus
-      let dest=trip.stops.find(x=>x[1]>c.seq && toNames.includes((S.stops[x[0]]||{}).name));
+      let dest=trip.stops.find(x=>x[1]>c.seq && toNames.some(t=>((S.stops[x[0]]||{}).name||'').startsWith(t)));
       if(!dest){ if(toNames.length) continue; dest=trip.stops[trip.stops.length-1]; }
       seen.add(c.trip_id);
       const tu=lastTU[c.trip_id];
@@ -445,11 +451,13 @@ function renderHome(){
   $('modeGo').classList.toggle('on',mode==='go'); $('modeBack').classList.toggle('on',mode==='back');
   const day=serviceDay();
   const homeStops=Object.values(pref.stops).filter(Boolean);
-  pref.routes.forEach((r,i)=>{
+  const order = mode==='go' ? pref.routes : [...pref.routes].reverse();
+  order.forEach((r,i)=>{
     const from = mode==='go' ? (pref.stops[r]||'') : pref.hub;
     const toNames = mode==='go' ? [pref.hub] : homeStops;
     const {rows,found}=departures(r, from, toNames, day, 3);
-    const card=document.createElement('div'); card.className='card'+(i?' alt':'');
+    const alt = r!==pref.routes[0];
+    const card=document.createElement('div'); card.className='card'+(alt?' alt':'');
     let body='', chip='', toLabel = mode==='go'?pref.hub:(rows[0]?rows[0].destName:homeStops.join('／'));
     if(!found){ body=`<div class="none">「${esc(from)}」というバス停が時刻表に見つかりません。設定で確認してください。</div>`; }
     else if(!rows.length){
@@ -535,6 +543,30 @@ $('mapwrap').addEventListener('toggle', ()=>{ if($('mapwrap').open){ setTimeout(
 $('intervalSel').addEventListener('change', e=>{ pref.interval=+e.target.value; savePref(); startTimer(); });
 $('routesInput').addEventListener('change', e=>{ pref.routes=e.target.value.split(/[,、\s]+/).map(s=>s.trim()).filter(Boolean); savePref(); boot(true); });
 $('reloadStatic').addEventListener('click', ()=>boot(true));
+function haversine(a,b,c,d){const R=6371000,t=Math.PI/180,x=(c-a)*t,y=(d-b)*t,s=Math.sin(x/2)**2+Math.cos(a*t)*Math.cos(c*t)*Math.sin(y/2)**2;return 2*R*Math.asin(Math.sqrt(s));}
+let verifyTimer=null, verifyLog=[];
+async function verifyOnce(){
+  const out=$('verifyOut'); out.hidden=false;
+  if(!navigator.geolocation){ out.textContent='この端末では位置情報が使えません'; return; }
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    await refresh();
+    const me=pos.coords; const now=Date.now()/1000;
+    const list=lastVeh.filter(v=>v.lat&&v.lon).map(v=>{
+      const trip=S.trips[v.trip.trip_id]||{}; const route=S.routes[trip.route_id||v.trip.route_id]||{short:'?'};
+      return {v,route,dist:haversine(me.latitude,me.longitude,v.lat,v.lon)};
+    }).sort((a,b)=>a.dist-b.dist);
+    if(!list.length){ out.textContent='位置情報のあるバスがありません'; return; }
+    const n=list[0]; const age=n.v.timestamp?Math.round(now-n.v.timestamp):null;
+    const ns=n.v.stop_id&&S.stops[n.v.stop_id]?S.stops[n.v.stop_id].name:'';
+    const line=`${hhmm(new Date())}  最寄のバス ${n.route.short}（${esc(ns)}へ）\n　距離 ${Math.round(n.dist)} m／バス位置の鮮度 ${age!=null?age+'秒前':'不明'}／GPS精度 ±${Math.round(me.accuracy)} m\n　バス ${n.v.lat.toFixed(5)}, ${n.v.lon.toFixed(5)}　自分 ${me.latitude.toFixed(5)}, ${me.longitude.toFixed(5)}`;
+    verifyLog.unshift(line); verifyLog=verifyLog.slice(0,12);
+    out.textContent=verifyLog.join('\n\n');
+  }, err=>{ out.textContent='位置情報を取得できませんでした: '+err.message; }, {enableHighAccuracy:true,timeout:10000});
+}
+$('verifyBtn').addEventListener('click', ()=>{
+  if(verifyTimer){ clearInterval(verifyTimer); verifyTimer=null; $('verifyBtn').textContent='GPSでバス位置を検証'; return; }
+  verifyOnce(); verifyTimer=setInterval(verifyOnce, 30000); $('verifyBtn').textContent='検証を止める';
+});
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && S) refresh(); });
 
 pref.mode='go';
